@@ -318,7 +318,7 @@ public class TypeDescriptorExtractor {
 		private boolean shouldCatchMethod(MethodMember method) {
 			return !(method.isPrivateOrStaticOrFinal()
 					|| method.getName().endsWith(Constants.methodSuffixSuperDispatcher) || (method.getName().equals(
-					"finalize") && method.getDescriptor().equals("()V")));
+					"finalize") && method.getDescriptor().equals("()V")) || method.getName().startsWith("super$"));
 		}
 
 		public void visit(int version, int flags, String name, String signature, String superclassName,

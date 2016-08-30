@@ -157,7 +157,7 @@ class MethodCopier extends MethodVisitor implements Constants {
 
 				// Only need to redirect to the superdispatcher if it was a protected method
 				TypeDescriptor supertypeDescriptor = getType(owner);
-				MethodMember target = supertypeDescriptor.getByNameAndDescriptor(name + desc);
+				MethodMember target = supertypeDescriptor.getByDescriptor(name, desc);
 				if (target != null && target.isProtected()) {
 					// A null target means that method is not in the supertype, so didn't get a superdispatcher
 					super.visitMethodInsn(INVOKESPECIAL, classname, name + methodSuffixSuperDispatcher, desc, false);

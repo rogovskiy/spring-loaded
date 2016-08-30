@@ -60,14 +60,11 @@ public class MethodMember extends AbstractMember {
 	// For MethodMembers in an incremental type descriptor, this tracks the method in the original type descriptor (if there was one)
 	public MethodMember original;
 
-	public final String nameAndDescriptor;
-
 	public Method cachedMethod;
 
 	protected MethodMember(int modifiers, String name, String descriptor, String signature, String[] exceptions) {
 		super(modifiers, name, descriptor, signature);
 		this.exceptions = perhapsSortIfNecessary(exceptions);
-		this.nameAndDescriptor = new StringBuilder(name).append(descriptor).toString();
 	}
 
 	private String[] perhapsSortIfNecessary(String[] exceptions) {
@@ -85,7 +82,7 @@ public class MethodMember extends AbstractMember {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("0x").append(Integer.toHexString(modifiers));
-		sb.append(" ").append(name).append(descriptor);
+		sb.append(" ").append(getName()).append(getDescriptor());
 		if (exceptions.length != 0) {
 			sb.append(" throws ");
 			for (String ex : exceptions) {
@@ -97,16 +94,16 @@ public class MethodMember extends AbstractMember {
 
 	public String getParamDescriptor() {
 		// more likely to be at the end, lets go back from there
-		for (int pos = descriptor.length() - 1; pos > 0; pos--) {
-			if (descriptor.charAt(pos) == ')') {
-				return descriptor.substring(0, pos + 1);
+		for (int pos = getDescriptor().length() - 1; pos > 0; pos--) {
+			if (getDescriptor().charAt(pos) == ')') {
+				return getDescriptor().substring(0, pos + 1);
 			}
 		}
-		throw new IllegalStateException("Method has invalid descriptor: " + descriptor);
+		throw new IllegalStateException("Method has invalid descriptor: " + getDescriptor());
 	}
 
 	public boolean hasReturnValue() {
-		return descriptor.charAt(descriptor.length() - 1) != 'V';
+		return nameAndDescriptor.descriptor.charAt(nameAndDescriptor.descriptor.length() - 1) != 'V';
 	}
 
 	public boolean equals(Object other) {
@@ -114,13 +111,10 @@ public class MethodMember extends AbstractMember {
 			return false;
 		}
 		MethodMember o = (MethodMember) other;
-		if (!name.equals(o.name)) {
-			return false;
-		}
 		if (modifiers != o.modifiers) {
 			return false;
 		}
-		if (!descriptor.equals(o.descriptor)) {
+		if (!nameAndDescriptor.equals(o.nameAndDescriptor)) {
 			return false;
 		}
 		if (exceptions.length != o.exceptions.length) {
@@ -147,8 +141,7 @@ public class MethodMember extends AbstractMember {
 
 	public int hashCode() {
 		int result = modifiers;
-		result = result * 37 + name.hashCode();
-		result = result * 37 + descriptor.hashCode();
+		result = result * 37 + nameAndDescriptor.hashCode();
 		if (signature != null) {
 			result = result * 37 + signature.hashCode();
 		}
@@ -162,7 +155,7 @@ public class MethodMember extends AbstractMember {
 
 	public MethodMember catcherCopyOf() {
 		int newModifiers = modifiers & ~Modifier.NATIVE;
-		if (name.equals("clone") && (modifiers & Modifier.NATIVE) != 0) {
+		if (nameAndDescriptor.name.equals("clone") && (modifiers & Modifier.NATIVE) != 0) {
 			newModifiers = Modifier.PUBLIC;
 		}
 		else if ((modifiers & Modifier.PROTECTED) != 0) {
@@ -177,14 +170,14 @@ public class MethodMember extends AbstractMember {
 			// it cannot. The necessary knock on effect is that subtypes get their methods promoted to public too...
 			newModifiers = Modifier.PUBLIC;
 		}
-		MethodMember copy = new MethodMember(newModifiers, name, descriptor, signature, exceptions);
+		MethodMember copy = new MethodMember(newModifiers, nameAndDescriptor.name, nameAndDescriptor.descriptor, signature, exceptions);
 		copy.bits |= MethodMember.BIT_CATCHER;
 		return copy;
 	}
 
 	public MethodMember superDispatcherFor() {
 		int newModifiers = modifiers & ~Modifier.NATIVE;
-		if (name.equals("clone") && (modifiers & Modifier.NATIVE) != 0) {
+		if (nameAndDescriptor.name.equals("clone") && (modifiers & Modifier.NATIVE) != 0) {
 			newModifiers = Modifier.PUBLIC;
 		}
 		else if ((modifiers & Modifier.PROTECTED) != 0) {
@@ -199,7 +192,7 @@ public class MethodMember extends AbstractMember {
 			// it cannot. The necessary knock on effect is that subtypes get their methods promoted to public too...
 			newModifiers = Modifier.PUBLIC;
 		}
-		MethodMember copy = new MethodMember(newModifiers, name + "_$superdispatcher$", descriptor, signature,
+		MethodMember copy = new MethodMember(newModifiers, nameAndDescriptor.name + "_$superdispatcher$", nameAndDescriptor.descriptor, signature,
 				exceptions);
 		copy.bits |= MethodMember.BIT_SUPERDISPATCHER;
 		return copy;
@@ -207,7 +200,7 @@ public class MethodMember extends AbstractMember {
 
 	public MethodMember catcherCopyOfWithAbstractRemoved() {
 		int newModifiers = modifiers & ~(Modifier.NATIVE | Modifier.ABSTRACT);
-		if (name.equals("clone") && (modifiers & Modifier.NATIVE) != 0) {
+		if (nameAndDescriptor.name.equals("clone") && (modifiers & Modifier.NATIVE) != 0) {
 			newModifiers = Modifier.PUBLIC;
 		}
 		else if ((modifiers & Modifier.PROTECTED) != 0) {
@@ -222,35 +215,17 @@ public class MethodMember extends AbstractMember {
 			// it cannot. The necessary knock on effect is that subtypes get their methods promoted to public too...
 			newModifiers = Modifier.PUBLIC;
 		}
-		MethodMember copy = new MethodMember(newModifiers, name, descriptor, signature, exceptions);
+		MethodMember copy = new MethodMember(newModifiers, nameAndDescriptor.name, nameAndDescriptor.descriptor, signature, exceptions);
 		copy.bits |= MethodMember.BIT_CATCHER;
 		copy.bits |= MethodMember.BIT_CATCHER_INTERFACE;
 		return copy;
 	}
 
 	public boolean equalsApartFromModifiers(MethodMember other) {
-		if (!(other instanceof MethodMember)) {
-			return false;
-		}
-		MethodMember o = other;
-		if (!name.equals(o.name)) {
-			return false;
-		}
-		if (!descriptor.equals(o.descriptor)) {
-			return false;
-		}
-		//		if (exceptions.length != o.exceptions.length) {
-		//			return false;
-		//		}
-		//		for (int i = 0; i < exceptions.length; i++) {
-		//			if (!exceptions[i].equals(o.exceptions[i])) {
-		//				return false;
-		//			}
-		//		}
-		return true;
+		return nameAndDescriptor.equals(other.nameAndDescriptor);
 	}
 
-	public String getNameAndDescriptor() {
+	public NameAndDescriptor getNameAndDescriptor() {
 		return nameAndDescriptor;
 	}
 
@@ -310,17 +285,17 @@ public class MethodMember extends AbstractMember {
 	 * in source code, the compiler will introduce a bridge method in bytecode.
 	 */
 	public boolean shouldReplace(MethodMember other) {
-		if (!name.equals(other.name)) {
+		if (!nameAndDescriptor.name.equals(other.nameAndDescriptor.name)) {
 			return false;
 		}
-		if (!descriptor.equals(other.descriptor)) {
+		if (!nameAndDescriptor.descriptor.equals(other.nameAndDescriptor.descriptor)) {
 			return false;
 		}
 		return true;
 	}
 
 	public boolean isConstructor() {
-		return name.equals("<init>");
+		return nameAndDescriptor.name.equals("<init>");
 	}
 
 }

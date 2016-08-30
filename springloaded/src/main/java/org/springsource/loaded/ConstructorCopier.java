@@ -126,7 +126,11 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 								mv.visitInsn(SWAP);
 								mv.visitInsn(DUP_X1);
 								// no stack is instance then params then instance
-								mv.visitLdcInsn("<init>" + desc);
+								mv.visitTypeInsn(NEW, "org/springsource/loaded/NameAndDescriptor");
+								mv.visitInsn(DUP);
+								mv.visitLdcInsn("<init>");
+								mv.visitLdcInsn(desc);
+								mv.visitMethodInsn(INVOKESPECIAL, "org/springsource/loaded/NameAndDescriptor", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", false);
 								mv.visitMethodInsn(INVOKESPECIAL, typeDescriptor.getSupertypeName(),
 										mDynamicDispatchName,
 										mDynamicDispatchDescriptor, false);

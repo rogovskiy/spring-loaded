@@ -39,7 +39,7 @@ public class IncrementalTypeDescriptor implements Constants {
 
 	private final static int BIT_COMPUTED_DIFF = 0x0001;
 
-	private Map<String, MethodMember> latestMethods; // Map from nameAndDescriptor to the MethodMember
+	private Map<NameAndDescriptor, MethodMember> latestMethods; // Map from nameAndDescriptor to the MethodMember
 
 	private List<MethodMember> newOrChangedMethods;
 
@@ -108,7 +108,7 @@ public class IncrementalTypeDescriptor implements Constants {
 		if ((bits & BIT_COMPUTED_DIFF) != 0) {
 			return;
 		}
-		latestMethods = new HashMap<String, MethodMember>();
+		latestMethods = new HashMap<NameAndDescriptor, MethodMember>();
 		newOrChangedMethods = new ArrayList<MethodMember>();
 		deletedMethods = new ArrayList<MethodMember>();
 		// Process the methods in the latest copy, compared to the original
@@ -178,8 +178,7 @@ public class IncrementalTypeDescriptor implements Constants {
 				//					}
 				//				}
 			}
-			String nadKey = new StringBuilder(latest.getName()).append(latest.getDescriptor()).toString();
-			latestMethods.put(nadKey, latest);
+			latestMethods.put(latest.getNameAndDescriptor(), latest);
 		}
 		for (MethodMember initialMethod : initialTypeDescriptor.getMethods()) {
 			if (MethodMember.isCatcher(initialMethod)) {
@@ -244,9 +243,9 @@ public class IncrementalTypeDescriptor implements Constants {
 		return a;
 	}
 
-	public MethodMember getFromLatestByDescriptor(String nameAndDescriptor) {
+	public MethodMember getFromLatestByDescriptor(String name, String descriptor) {
 		compute();
-		return latestMethods.get(nameAndDescriptor);
+		return latestMethods.get(new NameAndDescriptor(name, descriptor));
 	}
 
 	// For checking the bitflags:

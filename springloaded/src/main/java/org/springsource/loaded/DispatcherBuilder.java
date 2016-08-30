@@ -182,12 +182,15 @@ public class DispatcherBuilder {
 					// would the implementation for a catcher call the super catcher?
 				}
 				//				System.out.println("Generating handler for " + method.name);
-				String nameWithDescriptor = new StringBuilder(method.name).append(method.descriptor).toString();
 
 				// 2. Load the input name+descriptor and compare it with this method:
 				mv.visitVarInsn(ALOAD, 3);
-				mv.visitLdcInsn(nameWithDescriptor);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false);
+				mv.visitTypeInsn(NEW, "org/springsource/loaded/NameAndDescriptor");
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(method.getName());
+				mv.visitLdcInsn(method.getDescriptor());
+				mv.visitMethodInsn(INVOKESPECIAL, "org/springsource/loaded/NameAndDescriptor", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "org/springsource/loaded/NameAndDescriptor", "equals", "(Ljava/lang/Object;)Z", false);
 				Label label = new Label();
 				mv.visitJumpInsn(IFEQ, label); // means if false
 
@@ -196,19 +199,19 @@ public class DispatcherBuilder {
 					mv.visitVarInsn(Opcodes.ALOAD, 2);
 					mv.visitTypeInsn(CHECKCAST, classname);
 				}
-				String callDescriptor = method.isStatic() ? method.descriptor : Utils.insertExtraParameter(classname,
-						method.descriptor);
+				String callDescriptor = method.isStatic() ? method.getDescriptor() : Utils.insertExtraParameter(classname,
+						method.getDescriptor());
 
-				int pcount = Utils.getParameterCount(method.descriptor);
+				int pcount = Utils.getParameterCount(method.getDescriptor());
 				if (pcount > maxStack) {
 					pcount = maxStack;
 				}
 
 				// 4. Unpack parameter array to fit the descriptor for that method
-				Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(mv, method.descriptor, 1);
+				Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(mv, method.getDescriptor(), 1);
 
-				ReturnType returnType = Utils.getReturnTypeDescriptor(method.descriptor);
-				mv.visitMethodInsn(Opcodes.INVOKESTATIC, executorClassName, method.name, callDescriptor, false);
+				ReturnType returnType = Utils.getReturnTypeDescriptor(method.getDescriptor());
+				mv.visitMethodInsn(Opcodes.INVOKESTATIC, executorClassName, method.getName(), callDescriptor, false);
 				if (returnType.isVoid()) {
 					mv.visitInsn(ACONST_NULL);
 				}
@@ -219,28 +222,30 @@ public class DispatcherBuilder {
 				mv.visitLabel(label);
 			}
 			for (MethodMember ctor : typeDescriptor.getLatestTypeDescriptor().getConstructors()) {
-				String nameWithDescriptor = new StringBuilder(ctor.name).append(ctor.descriptor).toString();
-
 				// 2. Load the input name+descriptor and compare it with this method:
 				//    if (nameAndDescriptor.equals(xxx)) {
 				mv.visitVarInsn(ALOAD, indexNameAndDescriptor);
-				mv.visitLdcInsn(nameWithDescriptor);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false);
+				mv.visitTypeInsn(NEW, "org/springsource/loaded/NameAndDescriptor");
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(ctor.getName());
+				mv.visitLdcInsn(ctor.getDescriptor());
+				mv.visitMethodInsn(INVOKESPECIAL, "org/springsource/loaded/NameAndDescriptor", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "org/springsource/loaded/NameAndDescriptor", "equals", "(Ljava/lang/Object;)Z", false);
 				Label label = new Label();
 				mv.visitJumpInsn(IFEQ, label); // means if false
 
 				// 3. Generate the code that will call the method on the executor:
 				mv.visitVarInsn(Opcodes.ALOAD, 2);
 				mv.visitTypeInsn(CHECKCAST, classname);
-				String callDescriptor = Utils.insertExtraParameter(classname, ctor.descriptor);
+				String callDescriptor = Utils.insertExtraParameter(classname, ctor.getDescriptor());
 
-				int pcount = Utils.getParameterCount(ctor.descriptor);
+				int pcount = Utils.getParameterCount(ctor.getDescriptor());
 				if (pcount > maxStack) {
 					pcount = maxStack;
 				}
 
 				// 4. Unpack parameter array to fit the descriptor for that method
-				Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(mv, ctor.descriptor, 1);
+				Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(mv, ctor.getDescriptor(), 1);
 
 				//				ReturnType returnType = Utils.getReturnTypeDescriptor(method.descriptor);
 				mv.visitMethodInsn(Opcodes.INVOKESTATIC, executorClassName, "___init___", callDescriptor, false);

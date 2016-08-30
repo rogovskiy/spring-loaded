@@ -82,7 +82,7 @@ public class TypeDescriptorExtractor {
 
 		private List<FieldMember> fields = new ArrayList<FieldMember>();
 
-		private List<String> finalInHierarchy = new ArrayList<String>();
+		private List<NameAndDescriptor> finalInHierarchy = new ArrayList<NameAndDescriptor>();
 
 		public ExtractionVisitor(boolean isReloadableType) {
 			super(ASM5);
@@ -114,13 +114,13 @@ public class TypeDescriptorExtractor {
 			String clashDescriptorPrefix = "(L" + typename + ";";
 			for (MethodMember member : methods) {
 				if (member.isStatic()) {
-					String desc = member.descriptor;
+					String desc = member.getDescriptor();
 					if (desc.startsWith(clashDescriptorPrefix)) {
 						// might be a clash, need to check the instance methods
 						for (MethodMember member2 : methods) {
-							if (member2.name.equals(member.name)) {
+							if (member2.getName().equals(member.getName())) {
 								// really might be a clash
-								String instanceParams = member2.descriptor;
+								String instanceParams = member2.getDescriptor();
 								instanceParams = instanceParams.substring(1, instanceParams.indexOf(')') + 1);
 								String staticParams = desc.substring(clashDescriptorPrefix.length(),
 										desc.indexOf(')') + 1);
@@ -163,20 +163,20 @@ public class TypeDescriptorExtractor {
 		 * computes superdispatchers - see 'superdispatchers' in notes.md
 		 * 
 		 */
-		private void walkHierarchyForCatchersAndSuperDispatchers(String superclass, List<String> superDispatchers,
-				List<String> finalInHierarchy) {
+		private void walkHierarchyForCatchersAndSuperDispatchers(String superclass, List<NameAndDescriptor> superDispatchers,
+				List<NameAndDescriptor> finalInHierarchy) {
 			TypeDescriptor supertypeDescriptor = superclass == null ? null : findTypeDescriptor(registry, superclass);
 			if (DEBUG_TYPE_DESCRIPTOR_EXTRACTOR) {
 				System.out.println("Computing catchers on " + this.typename + " from superclass " + superclass);
 			}
 			boolean isReloadable = supertypeDescriptor.isReloadable();
 			for (MethodMember method : supertypeDescriptor.getMethods()) {
-				if (shouldCreateSuperDispatcherFor(method) && !superDispatchers.contains(method.nameAndDescriptor)) {
+				if (shouldCreateSuperDispatcherFor(method) && !superDispatchers.contains(method)) {
 					// need a public super dispatcher - so that we can reach that super method
 					// from a reloaded instance of this type
 					MethodMember superdispatcher = method.superDispatcherFor();
 					methods.add(superdispatcher);
-					superDispatchers.add(method.nameAndDescriptor);
+					superDispatchers.add(method.getNameAndDescriptor());
 				}
 				if (shouldCatchMethod(method) && !finalInHierarchy.contains(method.getNameAndDescriptor())) {
 					// don't need the catcher if method is already defined since when the existing method is rewritten
@@ -201,7 +201,7 @@ public class TypeDescriptorExtractor {
 					}
 					MethodMember catcherCopy = method.catcherCopyOf();
 					if (DEBUG_TYPE_DESCRIPTOR_EXTRACTOR) {
-						System.out.println("Adding catcher for " + method.nameAndDescriptor);
+						System.out.println("Adding catcher for " + method);
 					}
 					methods.add(catcherCopy);
 				}
@@ -233,8 +233,8 @@ public class TypeDescriptorExtractor {
 
 			// TODO [review design] review the need to create catchers for methods where the supertype is reloadable.
 			// Can we just add them to the topmost reloadable type?
-			List<String> doNotCatch = new ArrayList<String>();
-			walkHierarchyForCatchersAndSuperDispatchers(superclassName, new ArrayList<String>(), doNotCatch);
+			List<NameAndDescriptor> doNotCatch = new ArrayList<NameAndDescriptor>();
+			walkHierarchyForCatchersAndSuperDispatchers(superclassName, new ArrayList<NameAndDescriptor>(), doNotCatch);
 
 			// ought to look in interfaces if we are an abstract class
 			if (Modifier.isAbstract(this.flags) && !this.isEnum/* && !Modifier.isInterface(this.flags)*/) {
@@ -256,7 +256,7 @@ public class TypeDescriptorExtractor {
 					(method.getName().equals("clone") && method.getDescriptor().equals("()Ljava/lang/Object;")));
 		}
 
-		private void addCatchersForNonImplementedMethodsFrom(String interfacename, List<String> finalInNonReloadableType) {
+		private void addCatchersForNonImplementedMethodsFrom(String interfacename, List<NameAndDescriptor> finalInNonReloadableType) {
 			TypeDescriptor interfaceDescriptor = findTypeDescriptor(registry, interfacename);
 			for (MethodMember method : interfaceDescriptor.getMethods()) {
 				// If this class doesn't implement this interface method, add it

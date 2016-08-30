@@ -32,14 +32,7 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.*;
 import org.springsource.loaded.ConstantPoolChecker2.References;
 import org.springsource.loaded.Utils.ReturnType;
 import org.springsource.loaded.ri.ReflectiveInterceptor;
@@ -1230,7 +1223,11 @@ public class MethodInvokerRewriter {
 				}
 
 				// TODO optimize to index, can we do that? is it worthwhile?
-				mv.visitLdcInsn(name + desc);
+				mv.visitTypeInsn(NEW, "org/springsource/loaded/NameAndDescriptor");
+				mv.visitInsn(DUP);
+        mv.visitLdcInsn(name);
+        mv.visitLdcInsn(desc);
+				mv.visitMethodInsn(INVOKESPECIAL, "org/springsource/loaded/NameAndDescriptor", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", false);
 
 				// 7. calling __execute(params array,this,name+desc)
 				mv.visitMethodInsn(INVOKEINTERFACE, Utils.getInterfaceName(owner), mDynamicDispatchName,
@@ -1305,7 +1302,12 @@ public class MethodInvokerRewriter {
 					mv.visitInsn(DUP_X1); // [targetInstance paramArray targetInstance]
 				}
 
-				mv.visitLdcInsn(name + desc); // [targetInstance paramArray targetInstance nameAndDescriptor]
+				mv.visitTypeInsn(NEW, "org/springsource/loaded/NameAndDescriptor");
+				mv.visitInsn(DUP);
+				mv.visitLdcInsn(name);
+        mv.visitLdcInsn(desc);
+				mv.visitMethodInsn(INVOKESPECIAL, "org/springsource/loaded/NameAndDescriptor", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+        // [targetInstance paramArray targetInstance nameAndDescriptor]
 
 				if (GlobalConfiguration.isJava18orHigher) {
 					// if the target is a generated lambda callsite object then calling __execute isn't going to work as those
@@ -1314,7 +1316,7 @@ public class MethodInvokerRewriter {
 							INVOKESTATIC,
 							tRegistryType,
 							"iiIntercept",
-							"(Ljava/lang/Object;[Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;",
+							"(Ljava/lang/Object;[Ljava/lang/Object;Ljava/lang/Object;Lorg/springsource/loaded/NameAndDescriptor;)Ljava/lang/Object;",
 							false);
 				}
 				else {
@@ -1375,7 +1377,11 @@ public class MethodInvokerRewriter {
 											// targetInstance]
 				}
 
-				mv.visitLdcInsn(name + desc);
+				mv.visitTypeInsn(NEW, "org/springsource/loaded/NameAndDescriptor");
+				mv.visitInsn(DUP);
+        mv.visitLdcInsn(name);
+        mv.visitLdcInsn(desc);
+				mv.visitMethodInsn(INVOKESPECIAL, "org/springsource/loaded/NameAndDescriptor", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", false);
 
 				// calling __execute(params array,this,name+desc)
 				mv.visitMethodInsn(INVOKEVIRTUAL, owner, mDynamicDispatchName, mDynamicDispatchDescriptor, itf);
@@ -1506,8 +1512,6 @@ public class MethodInvokerRewriter {
 						// stack is now the dispatcher instance then the instance then the params
 						mv.visitInsn(SWAP);
 						// stack is now the dispatcher instance then the params then the instance
-						mv.visitLdcInsn(name + desc);
-						// stack is now the dispatcher instance, the params, the instance and the name+desc!
 					}
 					else {
 						// stack is now the two instances
@@ -1521,12 +1525,19 @@ public class MethodInvokerRewriter {
 						mv.visitInsn(ACONST_NULL);
 						mv.visitInsn(SWAP);
 						// stack is now the dispatcher instance then null then the instance
-						mv.visitLdcInsn(name + desc);
-						// stack is now the dispatcher instance, null, the instance and the name+desc!
 					}
+					mv.visitTypeInsn(NEW, "org/springsource/loaded/NameAndDescriptor");
+					mv.visitInsn(DUP);
+					mv.visitLdcInsn(name);
+					mv.visitLdcInsn(desc);
+					mv.visitMethodInsn(INVOKESPECIAL, "org/springsource/loaded/NameAndDescriptor", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", false);
+					// stack is now the dispatcher instance, the params, the instance and the name+desc!
 					mv.visitMethodInsn(INVOKEINTERFACE, "org/springsource/loaded/__DynamicallyDispatchable",
 							mDynamicDispatchName,
 							mDynamicDispatchDescriptor, true);
+//					mv.visitMethodInsn(INVOKESTATIC, owner,
+//									"qqq",
+//									"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true);
 					mv.visitInsn(POP);
 					//					mv.visitMethodInsn(INVOKESPECIAL, "ctors/Callee", "<init>", "()V");
 
@@ -1591,7 +1602,11 @@ public class MethodInvokerRewriter {
 						mv.visitVarInsn(ALOAD, max + 2); // instance
 					}
 
-					mv.visitLdcInsn(name + desc);
+					mv.visitTypeInsn(NEW, "org/springsource/loaded/NameAndDescriptor");
+					mv.visitInsn(DUP);
+          mv.visitLdcInsn(name);
+          mv.visitLdcInsn(desc);
+					mv.visitMethodInsn(INVOKESPECIAL, "org/springsource/loaded/NameAndDescriptor", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", false);
 
 					mv.visitMethodInsn(INVOKEINTERFACE, "org/springsource/loaded/__DynamicallyDispatchable",
 							mDynamicDispatchName,

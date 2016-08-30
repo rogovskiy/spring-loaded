@@ -26,6 +26,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.objectweb.asm.Type;
+import org.springsource.loaded.NameAndDescriptor;
 import org.springsource.loaded.test.infra.Result;
 import org.springsource.loaded.test.infra.ResultException;
 import org.springsource.loaded.testgen.ExploreAllChoicesRunner;
@@ -43,7 +44,7 @@ public class ClassGetMethodTest extends GenerativeSpringLoadedTest {
 	 * Cached list of available method signatures. This doesn't need to be rediscovered for each test run since it is
 	 * not expected to change.
 	 */
-	private static String[] methodSignatureCache = null;
+	private static NameAndDescriptor[] methodSignatureCache = null;
 
 	/**
 	 * List of target type names used by signature finder
@@ -64,7 +65,7 @@ public class ClassGetMethodTest extends GenerativeSpringLoadedTest {
 
 	private Class<?>[] params;
 
-	private String methodSignature;
+	private NameAndDescriptor methodSignature;
 
 	@Override
 	protected String getTargetPackage() {
@@ -105,9 +106,8 @@ public class ClassGetMethodTest extends GenerativeSpringLoadedTest {
 
 	private void chooseMethodSignature() throws Exception {
 		methodSignature = choice(getMethodSignatures());
-		int splitAt = methodSignature.indexOf('(');
-		methodName = methodSignature.substring(0, splitAt);
-		String methodDescriptor = methodSignature.substring(splitAt);
+		methodName = methodSignature.getName();
+		String methodDescriptor = methodSignature.getDescriptor();
 		Type[] asmTypes = Type.getArgumentTypes(methodDescriptor);
 		params = new Class<?>[asmTypes.length];
 		//Get the corresponding class for each param type name
@@ -117,14 +117,14 @@ public class ClassGetMethodTest extends GenerativeSpringLoadedTest {
 
 	}
 
-	private String[] getMethodSignatures() throws Exception {
+	private NameAndDescriptor[] getMethodSignatures() throws Exception {
 		if (methodSignatureCache == null) {
 			SignatureFinder sigFinder = new SignatureFinder();
-			Set<String> sigs = new HashSet<String>();
+			Set<NameAndDescriptor> sigs = new HashSet<NameAndDescriptor>();
 			for (String targetType : targetTypeNames) {
 				sigFinder.gatherSignatures(targetType, sigs);
 			}
-			methodSignatureCache = sigs.toArray(new String[sigs.size()]);
+			methodSignatureCache = sigs.toArray(new NameAndDescriptor[sigs.size()]);
 		}
 		return methodSignatureCache;
 	}

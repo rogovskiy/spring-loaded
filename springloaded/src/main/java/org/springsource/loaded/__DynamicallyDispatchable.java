@@ -26,6 +26,6 @@ package org.springsource.loaded;
  */
 public interface __DynamicallyDispatchable {
 
-	Object __execute(Object[] parameters, Object instance, String nameAndDescriptor);
+	Object __execute(Object[] parameters, Object instance, NameAndDescriptor nameAndDescriptor);
 
 }

@@ -21,11 +21,7 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.springsource.loaded.MethodMember;
-import org.springsource.loaded.TypeDescriptor;
-import org.springsource.loaded.TypeDescriptorExtractor;
-import org.springsource.loaded.TypeRegistry;
-import org.springsource.loaded.UnableToLoadClassException;
+import org.springsource.loaded.*;
 import org.springsource.loaded.test.SpringLoadedTests;
 
 
@@ -52,7 +48,7 @@ public class SignatureFinder extends SpringLoadedTests {
 	 * @param string
 	 * @throws Exception
 	 */
-	public void gatherSignatures(String typeName, Set<String> sigs) {
+	public void gatherSignatures(String typeName, Set<NameAndDescriptor> sigs) {
 		gatherSignatures(typeName, "", sigs);
 		boolean oneSkipped = false;
 		try {
@@ -80,7 +76,7 @@ public class SignatureFinder extends SpringLoadedTests {
 	 * 
 	 * @throws Exception
 	 */
-	private void gatherSignatures(String typeName, String version, Set<String> sigs) {
+	private void gatherSignatures(String typeName, String version, Set<NameAndDescriptor> sigs) {
 		TypeRegistry tr = getTypeRegistry("");
 		byte[] bytes = null;
 		if (version.equals("")) {
@@ -141,23 +137,25 @@ public class SignatureFinder extends SpringLoadedTests {
 
 	@Test
 	public void simpleTest() {
-		Set<String> sigs = new HashSet<String>();
+		Set<NameAndDescriptor> sigs = new HashSet<NameAndDescriptor>();
 		gatherSignatures("reflection.targets.SimpleClass", sigs);
 
-		for (String string : sigs) {
+		Set<String> toString = new HashSet<String>();
+		for (NameAndDescriptor string : sigs) {
 			System.out.println(string);
+			toString.add(string.toString());
 		}
 
 		//Got some catchers?
-		Assert.assertTrue(sigs.contains("hashCode()I"));
-		Assert.assertTrue(sigs.contains("toString()Ljava/lang/String;"));
+		Assert.assertTrue(toString.contains("hashCode()I"));
+		Assert.assertTrue(toString.contains("toString()Ljava/lang/String;"));
 
 		//Got methods from the original version?
-		Assert.assertTrue(sigs.contains("method(Ljava/lang/String;)V"));
-		Assert.assertTrue(sigs.contains("method()I"));
+		Assert.assertTrue(toString.contains("method(Ljava/lang/String;)V"));
+		Assert.assertTrue(toString.contains("method()I"));
 
 		//Got method from v002?
-		Assert.assertTrue(sigs.contains("added(Lreflection/targets/SimpleClass;)V"));
+		Assert.assertTrue(toString.contains("added(Lreflection/targets/SimpleClass;)V"));
 	}
 
 	//TODO: [...] add tests for gatherConstructorsignatures

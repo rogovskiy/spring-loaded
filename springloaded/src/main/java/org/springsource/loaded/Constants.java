@@ -123,7 +123,7 @@ public interface Constants extends Opcodes {
 	// Dynamic dispatch method
 	static String mDynamicDispatchName = "__execute";
 
-	static String mDynamicDispatchDescriptor = "([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;";
+	static String mDynamicDispatchDescriptor = "([Ljava/lang/Object;Ljava/lang/Object;Lorg/springsource/loaded/NameAndDescriptor;)Ljava/lang/Object;";
 
 	static String mInitializerName = "___init___";
 

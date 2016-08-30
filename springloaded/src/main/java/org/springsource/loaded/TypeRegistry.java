@@ -1360,6 +1360,9 @@ public class TypeRegistry {
 		if (TypeRegistry.nothingReloaded) {
 			return null;
 		}
+		int index = nameAndDescriptor.indexOf("(");
+		String name = nameAndDescriptor.substring(0, index);
+		String descriptor = nameAndDescriptor.substring(index);
 		int registryId = ids >>> 16;
 		int typeId = ids & 0xffff;
 		TypeRegistry typeRegistry = registryInstances[registryId].get();
@@ -1376,7 +1379,7 @@ public class TypeRegistry {
 
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
 			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(
-					nameAndDescriptor);
+					name, descriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
 				// method has been deleted or is on a supertype. Look for it:
@@ -1393,7 +1396,7 @@ public class TypeRegistry {
 					if (nextInHierarchy == null) {
 						TypeDescriptor td = reg.getDescriptorFor(supertypename);
 						if (td != null) {
-							method = td.getByNameAndDescriptor(nameAndDescriptor);
+							method = td.getByDescriptor(name, descriptor);
 							supertypename = td.getSupertypeName();
 						}
 						else {
@@ -1402,7 +1405,7 @@ public class TypeRegistry {
 					}
 					else if (nextInHierarchy.hasBeenReloaded()) {
 						method = nextInHierarchy.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(
-								nameAndDescriptor);
+								name, descriptor);
 						if (method != null && IncrementalTypeDescriptor.wasDeleted(method)) {
 							method = null;
 						}
@@ -1459,13 +1462,13 @@ public class TypeRegistry {
 
 	// NOTE we don't throw NSME here (we could...) instead we let the body of the deleted method (that was rewritten) throw it
 	// TODO what about visibility changes?
-	public static Object invokespecialSearch(ReloadableType rt, String nameAndDescriptor) {
+	public static Object invokespecialSearch(ReloadableType rt, String name, String descriptor) {
 		// does this type define it?  If yes - work out if I need to call through the dispatcher or not.  If no - try my super
 		ReloadableType next = rt;
 		while (next != null) {
 			MethodMember m = null;
 			if (next.hasBeenReloaded()) {
-				m = next.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
+				m = next.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(name, descriptor);
 				if (m != null && IncrementalTypeDescriptor.wasDeleted(m)) {
 					m = null;
 				}
@@ -1476,7 +1479,7 @@ public class TypeRegistry {
 				}
 			}
 			else {
-				m = next.getMethod(nameAndDescriptor);
+				m = next.getMethod(name, descriptor);
 			}
 			if (m != null) {
 				if (next.hasBeenReloaded()) {
@@ -1500,7 +1503,7 @@ public class TypeRegistry {
 	 * @param nameAndDescriptor the name and descriptor of what is being called (e.g. foo(Ljava/lang/String)I)
 	 * @return the result of making the INVOKEINTERFACE call
 	 */
-	public static Object iiIntercept(Object instance, Object[] params, Object instance2, String nameAndDescriptor) {
+	public static Object iiIntercept(Object instance, Object[] params, Object instance2, NameAndDescriptor nameAndDescriptor) {
 		Class<?> clazz = instance.getClass();
 		try {
 			if (clazz.getName().contains("$$Lambda")) {
@@ -1522,7 +1525,7 @@ public class TypeRegistry {
 			else {
 				// Do what you were going to do...
 				Method m = instance.getClass().getDeclaredMethod("__execute", Object[].class, Object.class,
-						String.class);
+						NameAndDescriptor.class);
 				m.setAccessible(true);
 				return m.invoke(instance, params, instance, nameAndDescriptor);
 			}
@@ -1540,9 +1543,12 @@ public class TypeRegistry {
 		if (nothingReloaded) {
 			return null;
 		}
+		int index = nameAndDescriptor.indexOf("(");
+		String name = nameAndDescriptor.substring(0, index);
+		String descriptor = nameAndDescriptor.substring(index);
 
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {
-			log.entering("TypeRegistry", "spcheck", new Object[] { ids, nameAndDescriptor });
+			log.entering("TypeRegistry", "spcheck", new Object[] { ids, name, descriptor });
 		}
 		int typeId = ids & 0xffff;
 		TypeRegistry typeRegistry = registryInstances[ids >>> 16].get();
@@ -1557,7 +1563,7 @@ public class TypeRegistry {
 		//		}
 		// Search for the dispatcher we can call
 		__DynamicallyDispatchable o = (__DynamicallyDispatchable) invokespecialSearch(reloadableType,
-				nameAndDescriptor);
+				name, descriptor);
 		return o;
 	}
 
@@ -1608,8 +1614,11 @@ public class TypeRegistry {
 	 */
 	@UsedByGeneratedCode
 	public static boolean iincheck(int ids, String nameAndDescriptor) {
+		int index = nameAndDescriptor.indexOf("(");
+		String name = nameAndDescriptor.substring(0, index);
+		String descriptor = nameAndDescriptor.substring(index);
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {
-			log.entering("TypeRegistry", "iincheck", new Object[] { ids, nameAndDescriptor });
+			log.entering("TypeRegistry", "iincheck", new Object[] { ids, name, descriptor });
 		}
 		int registryId = ids >>> 16;
 		int typeId = ids & 0xffff;
@@ -1624,11 +1633,11 @@ public class TypeRegistry {
 		}
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
 			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(
-					nameAndDescriptor);
+					name, descriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
 				// method does not exist
-				throw new NoSuchMethodError(reloadableType.getBaseName() + "." + nameAndDescriptor);
+				throw new NoSuchMethodError(reloadableType.getBaseName() + "." + name + descriptor);
 			}
 			else if (IncrementalTypeDescriptor.isBrandNewMethod(method)) {
 				// definetly need to use the dispatcher
@@ -1809,8 +1818,11 @@ public class TypeRegistry {
 		if (nothingReloaded) {
 			return false;
 		}
+		int index = nameAndDescriptor.indexOf("(");
+		String name = nameAndDescriptor.substring(0, index);
+		String descriptor = nameAndDescriptor.substring(index);
 		//		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {
-		//			log.entering("TypeRegistry", "ivicheck", new Object[] { ids, nameAndDescriptor });
+		//			log.entering("TypeRegistry", "ivicheck", new Object[] { ids, name, descriptor });
 		//		}
 
 		// TODO [perf] global check (anything been reloaded?)
@@ -1844,12 +1856,12 @@ public class TypeRegistry {
 
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
 			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(
-					nameAndDescriptor);
+					name, descriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
-				if (!reloadableType.getTypeDescriptor().isFinalInHierarchy(nameAndDescriptor)) {
+				if (!reloadableType.getTypeDescriptor().isFinalInHierarchy(name, descriptor)) {
 					// Reloading has occurred and method does not exist in new version, throw NSME
-					throw new NoSuchMethodError(reloadableType.getBaseName() + "." + nameAndDescriptor);
+					throw new NoSuchMethodError(reloadableType.getBaseName() + "." + name + descriptor);
 				}
 			}
 			else if (IncrementalTypeDescriptor.isBrandNewMethod(method)) {

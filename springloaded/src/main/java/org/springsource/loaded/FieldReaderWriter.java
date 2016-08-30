@@ -232,7 +232,7 @@ public class FieldReaderWriter {
 				// need to go and find it, there *will* be one but it will be slow to retrieve (reflection)
 				stateManager = findStaticStateManager(clazz);
 				if (stateManager == null) {
-					return Utils.toResultCheckIfNull(null, theField.descriptor);
+					return Utils.toResultCheckIfNull(null, theField.getDescriptor());
 				}
 			}
 			String declaringTypeName = typeDescriptor.getName();

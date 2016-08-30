@@ -607,7 +607,7 @@ public class TypeRewriter implements Constants {
 				mv.visitVarInsn(ALOAD, indexThis);
 				mv.visitVarInsn(ALOAD, indexNameAndDescriptor);
 				mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "determineDispatcher",
-						"(Ljava/lang/Object;Ljava/lang/String;)Lorg/springsource/loaded/__DynamicallyDispatchable;");
+						"(Ljava/lang/Object;Lorg/springsource/loaded/NameAndDescriptor;)Lorg/springsource/loaded/__DynamicallyDispatchable;");
 
 				mv.visitInsn(DUP);
 				Label l1 = new Label();
@@ -814,8 +814,8 @@ public class TypeRewriter implements Constants {
 		 *
 		 */
 		private void createProtectedFieldGetterSetter(FieldMember field) {
-			String descriptor = field.descriptor;
-			String name = field.name;
+			String descriptor = field.getDescriptor();
+			String name = field.getName();
 			ReturnType rt = ReturnType.getReturnType(descriptor);
 			if (field.isStatic()) {
 				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC | Modifier.STATIC,
@@ -971,7 +971,7 @@ public class TypeRewriter implements Constants {
 					// Only worth including super.xxx() call if the supertype does define it or the supertype is reloadable
 					// Otherwise we will generate invokespecial 'Object.somethingThatCantBeThere' in some cases
 					TypeDescriptor superDescriptor = rtype.getTypeRegistry().getDescriptorFor(supertypeName);
-					if (!superDescriptor.definesNonPrivate(name + descriptor)) {
+					if (!superDescriptor.definesNonPrivate(name, descriptor)) {
 						insertThrowNoSuchMethodError();
 					}
 					else {

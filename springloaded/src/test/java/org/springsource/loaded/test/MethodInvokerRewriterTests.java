@@ -548,9 +548,13 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 						+ // put the target at the bottom
 						"    ACONST_NULL\n"
 						+ // load the instance (static call so null)
-						"    LDC toInt(Ljava/lang/String;)I\n"
+						"    NEW org/springsource/loaded/NameAndDescriptor\n" +
+						"    DUP\n" +
+						"    LDC toInt\n" +
+						"    LDC (Ljava/lang/String;)I\n" +
+						"    INVOKESPECIAL org/springsource/loaded/NameAndDescriptor.<init>(Ljava/lang/String;Ljava/lang/String;)V\n"
 						+ // load the name+descriptor
-						"    INVOKEINTERFACE tgt/SimpleClass__I.__execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"
+						"    INVOKEINTERFACE tgt/SimpleClass__I.__execute([Ljava/lang/Object;Ljava/lang/Object;Lorg/springsource/loaded/NameAndDescriptor;)Ljava/lang/Object;\n"
 						+
 						"    CHECKCAST java/lang/Integer\n" +
 						"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n" +

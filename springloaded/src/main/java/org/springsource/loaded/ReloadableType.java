@@ -198,10 +198,9 @@ public class ReloadableType {
 	 */
 	// TODO introduce a cache for people trolling through the methods array? same for fields?
 	public MethodMember getMethod(String name, String descriptor) {
-		for (MethodMember method : typedescriptor.getMethods()) {
-			if (method.getName().equals(name) && method.getDescriptor().equals(descriptor)) {
-				return method;
-			}
+		MethodMember method = typedescriptor.getByDescriptor(name , descriptor);
+		if (method != null) {
+			return method;
 		}
 		throw new IllegalStateException("Unable to find member '" + name + descriptor + "' on type "
 				+ this.dottedtypename);
@@ -1123,13 +1122,15 @@ public class ReloadableType {
 	 * a dispatcher that can handle it.
 	 *
 	 * @param instance the target instance for the invocation
-	 * @param nameAndDescriptor an encoded method name and descriptor, e.g. foo(Ljava/langString;)V
+	 * @param name method name
+	 * @param descriptor descriptor, e.g. foo(Ljava/langString;)V
 	 * @return a dispatcher that can handle the method indicated
 	 */
 	@UsedByGeneratedCode
-	public __DynamicallyDispatchable determineDispatcher(Object instance, String nameAndDescriptor) {
-
-		if (nameAndDescriptor.startsWith("<init>")) {
+	public __DynamicallyDispatchable determineDispatcher(Object instance, NameAndDescriptor nameAndDescriptor) {
+		String name = nameAndDescriptor.getName();
+		String descriptor = nameAndDescriptor.getDescriptor();
+		if (name.equals("<init>")) {
 			// its a ctor, no dynamic lookup required
 			if (!hasBeenReloaded()) {
 				// TODO evaluate whether this is too naughty.  it forces creation of the dispatcher so we can return it
@@ -1157,7 +1158,7 @@ public class ReloadableType {
 					if (mm.isPrivate()) { // TODO is skipping of private methods correct thing to do
 						continue;
 					}
-					if (mm.getNameAndDescriptor().equals(nameAndDescriptor)) {
+					if (mm.getNameAndDescriptor().equals2(name, descriptor)) {
 						// the reloaded version does implement this method
 						found = true;
 						break;
@@ -1169,7 +1170,7 @@ public class ReloadableType {
 				MethodMember[] mms = rtype.getTypeDescriptor().getMethods();
 				for (MethodMember mm : mms) {
 					// TODO don't need superdispatcher check, name won't match will it...
-					if (mm.getNameAndDescriptor().equals(nameAndDescriptor) && !MethodMember.isCatcher(mm)
+					if (mm.getNameAndDescriptor().equals2(name, descriptor) && !MethodMember.isCatcher(mm)
 							&& !MethodMember.isSuperDispatcher(mm)) {
 						// the original version does implement it
 						found = true;
@@ -1184,7 +1185,7 @@ public class ReloadableType {
 		}
 		if (found) {
 			if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-				log.log(Level.INFO, "appears that type " + rtype.getName() + " implements " + nameAndDescriptor);
+				log.log(Level.INFO, "appears that type " + rtype.getName() + " implements " + name + descriptor);
 			}
 		}
 		if (rtype == null) {
@@ -1218,10 +1219,6 @@ public class ReloadableType {
 		else {
 			return liveVersion.incrementalTypeDescriptor.getLatestTypeDescriptor();
 		}
-	}
-
-	public MethodMember getFromLatestByDescriptor(String nameAndDescriptor) {
-		return getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
 	}
 
 	public MethodMember getMethod(String nameAndDescriptor) {

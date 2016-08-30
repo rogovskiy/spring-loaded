@@ -254,19 +254,19 @@ public class CurrentLiveVersion {
 		// need to look at the delta
 		if (typeDelta.haveMethodsChangedOrBeenAddedOrRemoved()) {
 			if (typeDelta.haveMethodsChanged()) {
-				MethodDelta md = typeDelta.changedMethods.get(mm.name + mm.descriptor);
+				MethodDelta md = typeDelta.changedMethods.get(mm.getName() + mm.getDescriptor());
 				if (md != null) {
 					return true;
 				}
 			}
 			if (typeDelta.haveMethodsBeenAdded()) {
-				MethodNode mn = typeDelta.brandNewMethods.get(mm.name + mm.descriptor);
+				MethodNode mn = typeDelta.brandNewMethods.get(mm.getName() + mm.getDescriptor());
 				if (mn != null) {
 					return true;
 				}
 			}
 			if (typeDelta.haveMethodsBeenDeleted()) {
-				MethodNode mn = typeDelta.lostMethods.get(mm.name + mm.descriptor);
+				MethodNode mn = typeDelta.lostMethods.get(mm.getName() + mm.getDescriptor());
 				if (mn != null) {
 					return true;
 				}

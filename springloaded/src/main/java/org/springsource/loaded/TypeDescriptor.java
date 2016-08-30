@@ -47,7 +47,7 @@ public class TypeDescriptor implements Constants {
 
 	private final FieldMember[] fieldsRequiringAccessors; // empty array if there are none
 
-	private List<String> finalInHierarchy; // nameAndDescriptor strings for methods final in the hierarchy (e.g. ordinal()I for an enum)
+	private List<NameAndDescriptor> finalInHierarchy; // nameAndDescriptor strings for methods final in the hierarchy (e.g. ordinal()I for an enum)
 
 	private final TypeRegistry registry;
 
@@ -67,7 +67,7 @@ public class TypeDescriptor implements Constants {
 			List<? extends MethodMember> constructors, List<MethodMember> methods, List<? extends FieldMember> fields,
 			List<? extends FieldMember> fieldsRequiringAccessors, boolean isReloadable, TypeRegistry registry,
 			boolean hasClinit,
-			List<String> finalInHierarchy) {
+			List<NameAndDescriptor> finalInHierarchy) {
 		this.typename = slashedTypeName;
 		this.supertypeName = supertypeName;
 		this.superinterfaceNames = (superinterfaceNames == null ? NO_STRINGS : superinterfaceNames);
@@ -188,16 +188,6 @@ public class TypeDescriptor implements Constants {
 		return null;
 	}
 
-	public MethodMember getByNameAndDescriptor(String nameAndDescriptor) {
-		for (MethodMember existingMethod : methods) {
-			if (nameAndDescriptor.startsWith(existingMethod.getName())
-					&& nameAndDescriptor.endsWith(existingMethod.getDescriptor())) {
-				return existingMethod;
-			}
-		}
-		return null;
-	}
-
 	/**
 	 * @return true if this type descriptor has been created for a reloadable type
 	 */
@@ -236,17 +226,17 @@ public class TypeDescriptor implements Constants {
 		return (modifiers & ACC_ENUM) != 0;
 	}
 
-	public boolean definesNonPrivate(String nameAndDescriptor) {
+	public boolean definesNonPrivate(String name, String descriptor) {
 		for (MethodMember existingMethod : nonprivateMethods) {
-			if (existingMethod.nameAndDescriptor.equals(nameAndDescriptor)) {
+			if (existingMethod.nameAndDescriptor.equals2(name, descriptor)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean isFinalInHierarchy(String nad) {
-		return finalInHierarchy.contains(nad);
+	public boolean isFinalInHierarchy(String name, String descriptor) {
+		return finalInHierarchy.contains(new NameAndDescriptor(name, descriptor));
 	}
 
 	/**

@@ -28,9 +28,7 @@ public abstract class AbstractMember implements Constants {
 
 	protected final int modifiers;
 
-	protected final String name;
-
-	protected final String descriptor; // this is the erased descriptor.  There is no generic descriptor.
+	public final NameAndDescriptor nameAndDescriptor;
 
 	// Members have a well known id within their type - ids are unique per kind of member (methods/fields/constructors)
 	protected int id = -1;
@@ -42,8 +40,7 @@ public abstract class AbstractMember implements Constants {
 
 	protected AbstractMember(int modifiers, String name, String descriptor, String signature) {
 		this.modifiers = modifiers;
-		this.name = name;
-		this.descriptor = descriptor;
+		this.nameAndDescriptor = new NameAndDescriptor(name, descriptor);
 		this.signature = signature;
 		this.isPrivate = Modifier.isPrivate(modifiers);
 	}
@@ -52,14 +49,14 @@ public abstract class AbstractMember implements Constants {
 	 * @return the name of the member
 	 */
 	public final String getName() {
-		return name;
+		return nameAndDescriptor.name;
 	}
 
 	/**
 	 * @return the member descriptor. methods/constructors: "()Ljava/lang/String;" fields: "Ljava/lang/String;"
 	 */
 	public final String getDescriptor() {
-		return descriptor;
+		return nameAndDescriptor.descriptor;
 	}
 
 	/**

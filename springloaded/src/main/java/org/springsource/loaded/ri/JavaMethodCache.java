@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.objectweb.asm.Type;
 import org.springsource.loaded.MethodMember;
+import org.springsource.loaded.NameAndDescriptor;
 
 
 /**
@@ -47,10 +48,10 @@ public class JavaMethodCache {
 	public static class Initializer {
 
 		//To build up initial map entries with 'put'
-		private Map<String, Method> cache = new HashMap<String, Method>();
+		private Map<NameAndDescriptor, Method> cache = new HashMap<NameAndDescriptor, Method>();
 
 		protected void put(Method method) {
-			cache.put(method.getName() + Type.getMethodDescriptor(method), method);
+			cache.put(new NameAndDescriptor(method.getName(), Type.getMethodDescriptor(method)), method);
 		}
 
 	}
@@ -58,7 +59,7 @@ public class JavaMethodCache {
 	/*
 	 * Map indexed by name+descriptor.
 	 */
-	private Map<String, Method> cache = null;
+	private Map<NameAndDescriptor, Method> cache = null;
 
 	public boolean isInitialized() {
 		return cache != null;

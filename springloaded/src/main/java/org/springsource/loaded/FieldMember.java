@@ -40,7 +40,7 @@ public class FieldMember extends AbstractMember {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("0x").append(Integer.toHexString(modifiers));
-		sb.append(" ").append(descriptor).append(" ").append(name);
+		sb.append(" ").append(getDescriptor()).append(" ").append(getName());
 		if (signature != null) {
 			sb.append(" [").append(signature).append("]");
 		}
@@ -52,13 +52,10 @@ public class FieldMember extends AbstractMember {
 			return false;
 		}
 		FieldMember o = (FieldMember) other;
-		if (!name.equals(o.name)) {
+		if (!nameAndDescriptor.equals(o.nameAndDescriptor)) {
 			return false;
 		}
 		if (modifiers != o.modifiers) {
-			return false;
-		}
-		if (!descriptor.equals(o.descriptor)) {
 			return false;
 		}
 		if (signature == null && o.signature != null) {
@@ -77,8 +74,7 @@ public class FieldMember extends AbstractMember {
 
 	public int hashCode() {
 		int result = modifiers;
-		result = result * 37 + name.hashCode();
-		result = result * 37 + descriptor.hashCode();
+		result = result * 37 + nameAndDescriptor.hashCode();
 		if (signature != null) {
 			result = result * 37 + signature.hashCode();
 		}

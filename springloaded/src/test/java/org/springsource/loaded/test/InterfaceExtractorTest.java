@@ -67,7 +67,7 @@ public class InterfaceExtractorTest extends SpringLoadedTests {
 						+
 						"METHOD: 0x0401(public abstract) foo(Ldata/SimpleClass;)V\n"
 						+
-						"METHOD: 0x0401(public abstract) __execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"
+						"METHOD: 0x0401(public abstract) __execute([Ljava/lang/Object;Ljava/lang/Object;Lorg/springsource/loaded/NameAndDescriptor;)Ljava/lang/Object;\n"
 						+
 						"METHOD: 0x0401(public abstract) ___clinit___()V\n"
 						+
@@ -107,7 +107,7 @@ public class InterfaceExtractorTest extends SpringLoadedTests {
 						+
 						"METHOD: 0x0401(public abstract) woo(Ldata/SimpleClassFour;)V java/lang/RuntimeException java/lang/IllegalStateException\n"
 						+
-						"METHOD: 0x0401(public abstract) __execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"
+						"METHOD: 0x0401(public abstract) __execute([Ljava/lang/Object;Ljava/lang/Object;Lorg/springsource/loaded/NameAndDescriptor;)Ljava/lang/Object;\n"
 						+
 						"METHOD: 0x0401(public abstract) ___clinit___()V\n"
 						+

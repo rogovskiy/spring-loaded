@@ -721,6 +721,7 @@ public class SpringLoadedPreProcessor implements Constants {
 			plugins.add(new SpringPlugin());
 			plugins.add(new GroovyPlugin());
 			plugins.add(new CglibPlugin());
+			plugins.add(new GrowlPlugin());
 			// Not used right now, grails mechanisms are clearing the state that this plugin is trying to
 			// plugins.add(new GrailsPlugin());
 			List<String> extraGlobalPlugins = GlobalConfiguration.pluginClassnameList;

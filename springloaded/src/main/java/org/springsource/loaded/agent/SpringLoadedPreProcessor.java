@@ -342,7 +342,9 @@ public class SpringLoadedPreProcessor implements Constants {
 					if (GlobalConfiguration.fileSystemMonitoring && watchPath != null) {
 						typeRegistry.monitorForUpdates(rtype, watchPath);
 					}
-					return rtype.bytesLoaded;
+					byte[] bytesLoaded = rtype.bytesLoaded;
+					rtype.bytesLoaded = null;
+					return bytesLoaded;
 				}
 			}
 			catch (RuntimeException re) {

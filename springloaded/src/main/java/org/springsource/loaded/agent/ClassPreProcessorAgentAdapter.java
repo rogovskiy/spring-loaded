@@ -98,7 +98,9 @@ public class ClassPreProcessorAgentAdapter implements ClassFileTransformer {
 					if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 						log.info("Tricking HCR for " + className);
 					}
-					return rtype.bytesLoaded; // returning original bytes
+					byte[] bytesLoaded = rtype.bytesLoaded;
+					rtype.bytesLoaded = null;
+					return bytesLoaded; // returning original bytes
 				}
 				return null;
 			}
